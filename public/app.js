@@ -5,12 +5,31 @@ const playerSearch = document.getElementById('playerSearch');
 const videoList = document.getElementById('videoList');
 const refreshBtn = document.getElementById('refreshBtn');
 const lastUpdatedEl = document.getElementById('lastUpdated');
+const statusBadge = document.getElementById('statusBadge');
 const chatLog = document.getElementById('chatLog');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 
 let worldsData = null;
 let currentYear = null;
+let isLoading = false;
+
+function setStatus(message, state = 'idle') {
+  statusBadge.textContent = message;
+  statusBadge.dataset.state = state;
+}
+
+function getEmbedUrl(url) {
+  try {
+    const ytMatch = url.match(/(?:youtu\.be\/|v=)([\w-]{11})/);
+    if (ytMatch) {
+      return `https://www.youtube.com/embed/${ytMatch[1]}`;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 function renderSeasons() {
   if (!worldsData) return;
@@ -44,18 +63,24 @@ function renderPlayers() {
   const query = playerSearch.value.trim().toLowerCase();
   const players = season.keyPlayers.filter((p) => p.name.toLowerCase().includes(query));
 
+  if (!players.length) {
+    playerGrid.innerHTML = '<div class="empty">找不到符合條件的選手</div>';
+    return;
+  }
+
   playerGrid.innerHTML = players
-    .map(
-      (p) => `
+    .map((p) => {
+      const safeImg = p.imageUrl || 'placeholder-player.svg';
+      return `
         <div class="card">
-          <img src="${p.imageUrl}" alt="${p.name}" />
+          <img src="${safeImg}" alt="${p.name}" onerror="this.onerror=null;this.src='placeholder-player.svg';" />
           <div>
             <h3>${p.name}｜${p.role}</h3>
             <div class="meta">${season.year} 年 - ${p.team}</div>
             <p>${p.bio}</p>
           </div>
-        </div>`
-    )
+        </div>`;
+    })
     .join('');
 }
 
@@ -64,8 +89,21 @@ function renderVideos() {
   const season = worldsData.seasons.find((s) => s.year === Number(currentYear));
   if (!season) return;
 
+  if (!season.highlightVideos?.length) {
+    videoList.innerHTML = '<li class="empty">目前沒有可觀看的影片</li>';
+    return;
+  }
+
   videoList.innerHTML = season.highlightVideos
-    .map((v) => `<li><a href="${v.url}" target="_blank" rel="noopener noreferrer">${season.year}｜${v.title}</a></li>`)
+    .map((v) => {
+      const embedUrl = getEmbedUrl(v.url);
+      const safeTitle = `${season.year}｜${v.title}`;
+      const link = `<a href="${v.url}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>`;
+      const embed = embedUrl
+        ? `<div class="video-embed"><iframe src="${embedUrl}" title="${safeTitle}" allowfullscreen loading="lazy"></iframe></div>`
+        : '';
+      return `<li>${link}${embed}</li>`;
+    })
     .join('');
 }
 
@@ -77,6 +115,8 @@ function updateLastUpdated() {
 
 async function fetchWorlds(refresh = false) {
   try {
+    isLoading = true;
+    setStatus(refresh ? '重新整理中，可能需要一點時間...' : '資料載入中...', 'loading');
     refreshBtn.disabled = true;
     refreshBtn.textContent = '更新中...';
     const url = refresh ? '/api/worlds?refresh=1' : '/api/worlds';
@@ -85,10 +125,13 @@ async function fetchWorlds(refresh = false) {
     const data = await res.json();
     worldsData = data;
     renderSeasons();
+    setStatus('載入完成，可切換年份或搜尋選手', 'success');
   } catch (err) {
     console.error(err);
     alert('取得世界賽資料失敗，請稍後再試。');
+    setStatus('取得資料失敗，稍後再試', 'error');
   } finally {
+    isLoading = false;
     refreshBtn.disabled = false;
     refreshBtn.textContent = '重新從 GPT 更新資料';
   }
@@ -120,7 +163,7 @@ async function submitQuestion(question) {
     appendChatMessage(data.reply || '沒有取得回應', 'assistant', true);
   } catch (err) {
     console.error(err);
-    appendChatMessage('取得回應失敗，請稍後再試。', 'assistant', true);
+    appendChatMessage('取得回應失敗，請確認網路後再試一次。', 'assistant', true);
   }
 }
 
