@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>英雄聯盟世界賽圖鑑</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-content">
+        <h1>英雄聯盟世界賽圖鑑</h1>
+        <p>從 S1 到最新一屆的冠軍、選手與經典對局，一次掌握。</p>
+        <div class="hero-actions">
+          <button id="refreshBtn">重新從 GPT 更新資料</button>
+          <span id="lastUpdated"></span>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel" id="seasons">
+        <div class="panel-header">
+          <h2>年份 / 冠軍列表</h2>
+          <select id="yearSelect"></select>
+        </div>
+        <ul id="seasonList"></ul>
+      </section>
+
+      <section class="panel" id="players">
+        <div class="panel-header">
+          <h2>代表選手</h2>
+          <input id="playerSearch" type="text" placeholder="搜尋選手名稱" />
+        </div>
+        <div id="playerGrid" class="grid"></div>
+      </section>
+
+      <section class="panel" id="videos">
+        <div class="panel-header">
+          <h2>經典對局影片</h2>
+        </div>
+        <ul id="videoList"></ul>
+      </section>
+
+      <section class="panel" id="gpt">
+        <div class="panel-header">
+          <h2>世界賽 GPT 解說助手</h2>
+        </div>
+        <div id="chatLog" class="chat-log"></div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="請輸入想問的問題..." required />
+          <button type="submit">送出</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
