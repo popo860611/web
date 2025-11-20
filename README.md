@@ -14,14 +14,18 @@
    npm install
    ```
 2. 設定 OpenAI API Key
+
    ```bash
    export OPENAI_API_KEY=你的_API_key
    ```
+
 3. 啟動伺服器
    ```bash
    npm start
    ```
+
 4. 開啟瀏覽器造訪：<http://localhost:3000>
+
 
 ## 主要 API
 - `GET /api/worlds`：取得快取的世界賽資料；`?refresh=1` 會強制重新向 GPT + web_search 取回最新內容並更新快取。
@@ -33,4 +37,5 @@
 
 ## 注意事項
 - API 金鑰只會在後端使用，前端不會暴露。
+
 - 重啟伺服器會清除記憶體快取。
